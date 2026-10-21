@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wahrheitstafel-Übung</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#faf9f6;
+  --panel:#ffffff;
+  --fg:#1c1b18;
+  --muted:#6d685f;
+  --line:#dcd8ce;
+  --line-strong:#b8b2a5;
+  --cell:#ffffff;
+  --given:#f1eee7;
+  --main:#fdf6e3;
+  --ok:#1d7a4c;
+  --ok-bg:#e2f3e9;
+  --bad:#a92c2c;
+  --bad-bg:#fbe6e6;
+  --accent:#6b4f22;
+  --focus:#2f6fb5;
+  --onaccent:#ffffff;
+  box-sizing:border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#17171a; --panel:#202024; --fg:#eceae5; --muted:#a19c93;
+    --line:#35343a; --line-strong:#56545d; --cell:#26262b; --given:#2e2d33;
+    --main:#33301f; --ok:#6bcf98; --ok-bg:#1d3a2a; --bad:#f08a8a; --bad-bg:#3d2122;
+    --accent:#d9b872; --focus:#7fb0e8; --onaccent:#1c1b18;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#17171a; --panel:#202024; --fg:#eceae5; --muted:#a19c93;
+  --line:#35343a; --line-strong:#56545d; --cell:#26262b; --given:#2e2d33;
+  --main:#33301f; --ok:#6bcf98; --ok-bg:#1d3a2a; --bad:#f08a8a; --bad-bg:#3d2122;
+  --accent:#d9b872; --focus:#7fb0e8; --onaccent:#1c1b18;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  font-size:17px; line-height:1.55;
+}
+.wrap{max-width:62rem;margin:0 auto;padding:1.75rem 1.25rem 4rem}
+h1{font-size:1.5rem;margin:0 0 .35rem;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 1.75rem;font-size:.95rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:.5rem;padding:1.1rem 1.1rem 1.25rem;margin-bottom:1.25rem}
+label.lbl{display:block;font-size:.85rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.45rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+input[type=text]{
+  flex:1 1 22rem;min-width:0;
+  font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace;
+  font-size:1.05rem;padding:.55rem .7rem;
+  background:var(--cell);color:var(--fg);
+  border:1px solid var(--line-strong);border-radius:.35rem;
+}
+input[type=text]:focus{outline:2px solid var(--focus);outline-offset:1px}
+button{font:inherit;font-size:.95rem;padding:.5rem .9rem;border-radius:.35rem;border:1px solid var(--line-strong);background:var(--cell);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}
+.keys{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.6rem}
+.keys button{font-family:"DejaVu Sans",system-ui,sans-serif;min-width:2.3rem;padding:.3rem .5rem;font-size:1rem}
+.examples{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem}
+.examples button{font-size:.82rem;padding:.25rem .55rem;color:var(--muted)}
+.hint{font-size:.85rem;color:var(--muted);margin-top:.8rem}
+.hint code{font-family:"DejaVu Sans Mono",ui-monospace,monospace;font-size:.85em;background:var(--given);padding:.08em .35em;border-radius:.2rem}
+.hint dl{margin:.5rem 0 0;display:grid;grid-template-columns:auto 1fr;gap:.15rem .8rem}
+.hint dt{font-family:"DejaVu Sans Mono",ui-monospace,monospace;font-size:.85em;white-space:nowrap}
+.hint dd{margin:0}
+.err{color:var(--bad);font-size:.9rem;margin-top:.6rem}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.4rem}
+table{border-collapse:collapse;margin:0 auto;font-family:"DejaVu Sans Mono",ui-monospace,Menlo,Consolas,monospace}
+th,td{text-align:center;padding:0;border:0}
+th.hd{font-weight:400;font-size:1.05rem;padding:.3rem .15rem .45rem;border-bottom:1px solid var(--line-strong);white-space:nowrap}
+th.ref{padding-left:.5rem;padding-right:.5rem;color:var(--muted);font-size:.95rem}
+th.sep{padding-left:.4rem;padding-right:.4rem;color:var(--muted)}
+.gap{width:1.4rem;border-bottom:1px solid transparent !important}
+td.refcell{background:var(--given);color:var(--muted);font-size:.95rem;height:2rem;border-right:1px solid var(--line)}
+td.cell{min-width:2rem;height:2rem;padding:1px}
+td.blank{min-width:1.1rem}
+.cellbtn{width:100%;height:100%;min-width:1.9rem;min-height:1.9rem;display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:.95rem;background:var(--cell);border:1px solid var(--line);border-radius:.2rem;padding:0}
+.cellbtn.main{background:var(--main);border-color:var(--line-strong);font-weight:700}
+.cellbtn.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.cellbtn.bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+tr.witness td.refcell{box-shadow:inset 2px 0 0 var(--accent)}
+.mainmark{font-size:.7rem;color:var(--accent);letter-spacing:.04em}
+.verdict{margin-top:1.1rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.verdict .vlabel{font-size:.9rem;color:var(--muted);margin-right:.2rem}
+.vnote{flex:1 1 100%;margin:.15rem 0 0;font-size:.85rem;color:var(--muted);line-height:1.45}
+.verdict button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--onaccent)}
+.result{margin-top:1rem;padding:.7rem .85rem;border-radius:.35rem;font-size:.95rem;display:none}
+.result.show{display:block}
+.result.good{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok)}
+.result.partial{background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad)}
+.controls{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+.foot{font-size:.85rem;color:var(--muted);margin-top:2rem;border-top:1px solid var(--line);padding-top:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Wahrheitstafel-Übung</h1>
+<p class="sub">Formel oder Argument eingeben, Tafel selbst ausfüllen, prüfen lassen. Die Werte stehen unter dem jeweiligen Junktor.</p>
+
+<div class="panel">
+  <label class="lbl" for="formula">Eingabe</label>
+  <div class="row">
+    <input type="text" id="formula" placeholder="z. B. Würfel(a) ∧ Klein(a) ⊨ Würfel(a)" autocomplete="off" spellcheck="false">
+    <button class="primary" id="build">Tafel erzeugen</button>
+  </div>
+  <div class="keys" id="keys"></div>
+  <div class="examples" id="examples"></div>
+  <div class="hint">
+    <dl>
+      <dt>P, Q1, cube</dt><dd>Satzbuchstaben</dd>
+      <dt>Würfel(a), Größer(a,b)</dt><dd>atomare PL1-Formeln – Prädikat groß, Terme klein</dd>
+      <dt>a=b, a≠b</dt><dd>Identität (auch <code>/=</code> oder <code>!=</code>)</dd>
+      <dt>⊥</dt><dd>Falsum, immer falsch (auch <code>#</code>)</dd>
+      <dt>,</dt><dd>trennt mehrere Formeln</dd>
+      <dt>⊨</dt><dd>trennt Prämissen von der Konklusion (auch <code>|=</code> oder <code>∴</code>)</dd>
+    </dl>
+    <p style="margin:.6rem 0 0">
+      ASCII: <code>~</code> → ¬, <code>&amp;</code> oder <code>/\</code> → ∧, <code>\/</code> → ∨,
+      <code>-&gt;</code> → →, <code>&lt;-&gt;</code> → ↔.
+      Klammerregeln wie im LPL-Buch (Abschnitt 3.5): ¬ bindet nur an die unmittelbar
+      folgende Formel, die binären Junktoren haben <em>keine</em> Rangfolge untereinander.
+      <code>A ∧ B ∧ C</code> und <code>A ∨ B ∨ C</code> sind erlaubt,
+      <code>A ∨ B ∧ C</code> dagegen nicht. Äußerste Klammern dürfen entfallen;
+      <code>[</code> und <code>{</code> gelten als Klammern.
+    </p>
+  </div>
+  <p class="err" id="err" hidden></p>
+</div>
+
+<div class="panel" id="tablepanel" hidden>
+  <div class="scroll" id="scroll"></div>
+  <div class="verdict" id="verdict"></div>
+  <div class="controls">
+    <button class="primary" id="check">Prüfen</button>
+    <button id="clear">Leeren</button>
+    <button id="solve">Lösung zeigen</button>
+  </div>
+  <div class="result" id="result" role="status"></div>
+</div>
+
+<p class="foot">
+  Bedienung: Zelle anklicken schaltet weiter (leer → W → F → leer). Tastatur: <strong>w</strong> für wahr,
+  <strong>f</strong> für falsch, <strong>Entf</strong> löscht, Pfeiltasten bewegen.
+  Die Spalte unter dem Hauptjunktor jeder Formel ist hervorgehoben.
+</p>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var TRUE_CHAR = "W", FALSE_CHAR = "F";
+  var MAX_ATOMS = 5;
+
+  /* ---------- Normalisierung ---------- */
+  function normalize(s){
+    return s
+      .replace(/\|=|\|-|∴|⊢/g, "⊨")
+      .replace(/<->|<=>|<>|≡/g, "↔")
+      .replace(/->|=>|⊃/g, "→")
+      .replace(/\/=|!=|≠/g, "≠")
+      .replace(/\/\\|&&|&|∙/g, "∧")
+      .replace(/\\\/|\|\||\|/g, "∨")
+      .replace(/#|⊥/g, "⊥")
+      .replace(/~|!|¬/g, "¬")
+      .replace(/\s+/g, "");
+  }
+
+  /* ---------- Tokenizer ---------- */
+  var IDENT = /^[A-Za-zÄÖÜäöüß][A-Za-zÄÖÜäöüß0-9_]*/;
+  var TERM  = /^[a-zäöüß][a-zäöüß0-9]*/;
+
+  function tokenize(s){
+    var toks = [], i = 0;
+    while(i < s.length){
+      var c = s[i];
+      if("¬∧∨→↔()[]{}⊥,⊨".indexOf(c) >= 0){
+        toks.push({t:c, pos:i, text:c});
+        i++;
+        continue;
+      }
+      var m = IDENT.exec(s.slice(i));
+      if(!m) throw new Error("Unbekanntes Zeichen: „" + c + "“");
+      var name = m[0], j = i + name.length;
+
+      /* Prädikat mit Argumenten: Großbuchstabe + ( */
+      if(s[j] === "(" && /^[A-ZÄÖÜ]/.test(name)){
+        var k = j + 1, args = [];
+        for(;;){
+          var a = TERM.exec(s.slice(k));
+          if(!a) throw new Error("In „" + name + "(…)“ wird ein Term erwartet – Terme werden kleingeschrieben.");
+          args.push(a[0]); k += a[0].length;
+          if(s[k] === ","){ k++; continue; }
+          if(s[k] === ")"){ k++; break; }
+          throw new Error("Klammer nach „" + name + "“ ist nicht geschlossen.");
+        }
+        var txt = name + "(" + args.join(",") + ")";
+        toks.push({t:"atom", key:txt, pos:i, text:txt});
+        i = k;
+        continue;
+      }
+
+      /* Identität: Term = Term */
+      if(s[j] === "=" || s[j] === "≠"){
+        var rel = s[j];
+        var b = IDENT.exec(s.slice(j+1));
+        if(!b) throw new Error("Nach „" + rel + "“ wird ein Term erwartet.");
+        var key = name + "=" + b[0];
+        toks.push({t:"atom", key:key, neg:(rel === "≠"), pos:i,
+                   text:name + " " + rel + " " + b[0]});
+        i = j + 1 + b[0].length;
+        continue;
+      }
+
+      /* einfacher Satzbuchstabe */
+      toks.push({t:"atom", key:name, pos:i, text:name});
+      i = j;
+    }
+    if(!toks.length) throw new Error("Bitte etwas eingeben.");
+    return toks;
+  }
+
+  /* ---------- Parser: Klammerkonventionen nach LPL, Abschnitt 3.5 ----------
+     - ¬ bindet nur an die unmittelbar folgende Formel
+     - binäre Junktoren haben KEINE Rangfolge untereinander
+     - gleichartige ∧- bzw. ∨-Ketten dürfen unverklammert bleiben
+     - → und ↔ nur je einmal pro Klammerebene
+     - äußerste Klammern dürfen entfallen; ( [ { sind gleichwertig            */
+  var CLOSER = {")":"(", "]":"[", "}":"{"};
+
+  function parse(toks){
+    var i = 0;
+    function peek(){ return toks[i]; }
+    function isBin(tk){ return !!tk && "\u2227\u2228\u2192\u2194".indexOf(tk.t) >= 0; }
+
+    function unit(){
+      var tk = peek();
+      if(!tk) throw new Error("Formel ist unvollständig.");
+      if(tk.t === "atom"){
+        i++;
+        if(tk.neg) return {type:"neg", pos:tk.pos, sub:{type:"atom", key:tk.key, pos:null}};
+        return {type:"atom", key:tk.key, pos:tk.pos};
+      }
+      if(tk.t === "\u22a5"){ i++; return {type:"falsum", pos:tk.pos}; }
+      if(tk.t === "\u00ac"){ i++; return {type:"neg", pos:tk.pos, sub:unit()}; }
+      if("([{".indexOf(tk.t) >= 0){
+        var open = tk.t;
+        i++;
+        var e = formula();
+        var cl = peek();
+        if(!cl || CLOSER[cl.t] !== open)
+          throw new Error("Zu „" + open + "“ fehlt die schließende Klammer.");
+        i++;
+        return e;
+      }
+      if(isBin(tk)) throw new Error("Vor „" + tk.text + "“ fehlt eine Formel.");
+      throw new Error("Unerwartetes Zeichen: „" + tk.text + "“");
+    }
+
+    function formula(){
+      var node = unit();
+      if(!isBin(peek())) return node;
+      var op = peek().t, count = 0;
+      while(isBin(peek())){
+        var o = peek().t;
+        if(o !== op)
+          throw new Error("„" + op + "“ und „" + o + "“ dürfen nicht unverklammert "
+            + "nebeneinander stehen – LPL verlangt hier Klammern (Abschnitt 3.5).");
+        if((op === "\u2192" || op === "\u2194") && count >= 1)
+          throw new Error("Zwei „" + op + "“ auf derselben Klammerebene sind nicht "
+            + "eindeutig – LPL verlangt hier Klammern.");
+        var opTok = toks[i++];
+        node = {type:"bin", op:op, pos:opTok.pos, left:node, right:unit()};
+        count++;
+      }
+      return node;
+    }
+
+    var root = formula();
+    if(i < toks.length) throw new Error("Überschüssiges Zeichen: „" + toks[i].text + "“");
+    return root;
+  }
+
+  function collect(node, map, atoms){
+    if(node.pos != null) map[node.pos] = node;
+    if(node.type === "atom"){ if(atoms.indexOf(node.key) < 0) atoms.push(node.key); }
+    else if(node.type === "falsum"){ /* nichts */ }
+    else if(node.type === "neg"){ collect(node.sub, map, atoms); }
+    else { collect(node.left, map, atoms); collect(node.right, map, atoms); }
+  }
+
+  function ev(n, a){
+    if(n.type === "atom") return a[n.key];
+    if(n.type === "falsum") return false;
+    if(n.type === "neg") return !ev(n.sub, a);
+    var L = ev(n.left, a), R = ev(n.right, a);
+    if(n.op === "∧") return L && R;
+    if(n.op === "∨") return L || R;
+    if(n.op === "→") return !L || R;
+    return L === R;
+  }
+
+  /* ---------- Zustand ---------- */
+  var S = null;
+  function $(id){ return document.getElementById(id); }
+  var fEl = $("formula"), errEl = $("err"), panel = $("tablepanel"),
+      scroll = $("scroll"), resEl = $("result"), vEl = $("verdict");
+
+  /* ---------- Symbolleiste und Beispiele ---------- */
+  ["¬","∧","∨","→","↔","⊥","(",")",",","⊨"].forEach(function(sym){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = sym;
+    b.addEventListener("click", function(){
+      var p = fEl.selectionStart == null ? fEl.value.length : fEl.selectionStart;
+      var q = fEl.selectionEnd == null ? p : fEl.selectionEnd;
+      fEl.value = fEl.value.slice(0,p) + sym + fEl.value.slice(q);
+      fEl.focus();
+      fEl.selectionStart = fEl.selectionEnd = p + sym.length;
+    });
+    $("keys").appendChild(b);
+  });
+
+  [
+    ["Tautologie", "(P → Q) ∨ (Q → P)"],
+    ["Klammern (LPL 3.14)", "¬(Small(a) ∨ Small(b)), ¬Small(a) ∨ Small(b)"],
+    ["Folgerung", "P → Q, ¬Q ⊨ ¬P"],
+    ["ungültig", "P → Q, Q ⊨ P"],
+    ["Falsum", "(P ∧ ¬P) → ⊥"],
+    ["PL1 atomar", "(Würfel(a) ∧ a=b) ⊨ Würfel(b)"],
+    ["Erfüllbarkeit", "P ∨ Q, ¬P, ¬Q"]
+  ].forEach(function(ex){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = ex[0];
+    b.title = ex[1];
+    b.addEventListener("click", function(){ fEl.value = ex[1]; build(); });
+    $("examples").appendChild(b);
+  });
+
+  /* ---------- Tafel bauen ---------- */
+  function build(){
+    errEl.hidden = true;
+    resEl.className = "result";
+    try{
+      var norm = normalize(fEl.value);
+      var toks = tokenize(norm);
+
+      /* in Formeln zerlegen */
+      var groups = [[]], seps = [], turnstileAt = -1;
+      toks.forEach(function(tk){
+        if(tk.t === "," || tk.t === "⊨"){
+          if(tk.t === "⊨"){
+            if(turnstileAt >= 0) throw new Error("Nur ein ⊨ ist erlaubt.");
+            turnstileAt = groups.length;
+          }
+          seps.push({at:groups.length, tok:tk});
+          groups.push([]);
+        } else {
+          groups[groups.length - 1].push(tk);
+        }
+      });
+
+      if(turnstileAt === 1 && !groups[0].length){ groups.shift(); turnstileAt = 0; }
+      if(turnstileAt >= 0 && groups.length - turnstileAt !== 1)
+        throw new Error("Nach ⊨ muss genau eine Konklusion stehen.");
+      if(groups.some(function(g){ return !g.length; }))
+        throw new Error("Zwischen den Trennzeichen fehlt eine Formel.");
+
+      var roots = groups.map(parse);
+      var map = {}, atoms = [];
+      roots.forEach(function(r){ collect(r, map, atoms); });
+      atoms.sort();
+
+      if(atoms.length > MAX_ATOMS)
+        throw new Error("Höchstens " + MAX_ATOMS + " verschiedene atomare Formeln (sonst wird die Tafel zu groß). Gefunden: " + atoms.length + ".");
+
+      var mode = turnstileAt >= 0 ? "argument" : (roots.length > 1 ? "multi" : "single");
+
+      var nRows = Math.pow(2, atoms.length);
+      var rows = [];
+      for(var r = 0; r < nRows; r++){
+        var a = {};
+        for(var k = 0; k < atoms.length; k++){
+          a[atoms[k]] = ((r >> (atoms.length - 1 - k)) & 1) === 0;
+        }
+        rows.push(a);
+      }
+
+      S = {toks:toks, groups:groups, roots:roots, map:map, atoms:atoms,
+           rows:rows, mode:mode, turnstileAt:turnstileAt,
+           vals:rows.map(function(){ return {}; }), verdict:null};
+
+      render();
+      renderVerdict();
+      panel.hidden = false;
+    }catch(e){
+      errEl.textContent = e.message;
+      errEl.hidden = false;
+      panel.hidden = true;
+      S = null;
+    }
+  }
+
+  function isRoot(pos){
+    return S.roots.some(function(r){ return r.pos === pos; });
+  }
+
+  function render(){
+    var tbl = document.createElement("table");
+    var thead = document.createElement("thead");
+    var hr = document.createElement("tr");
+
+    S.atoms.forEach(function(n){
+      var th = document.createElement("th");
+      th.className = "hd ref";
+      th.textContent = n.replace(/([=≠])/g, " $1 ");
+      hr.appendChild(th);
+    });
+    var gap = document.createElement("th");
+    gap.className = "gap";
+    hr.appendChild(gap);
+
+    S.toks.forEach(function(tk){
+      var th = document.createElement("th");
+      th.className = "hd" + (tk.t === "," || tk.t === "⊨" ? " sep" : "");
+      th.textContent = tk.text;
+      if(isRoot(tk.pos) && "()[]{},⊨".indexOf(tk.t) < 0){
+        var m = document.createElement("div");
+        m.className = "mainmark";
+        m.textContent = "▲";
+        th.appendChild(m);
+      }
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    tbl.appendChild(thead);
+
+    var tb = document.createElement("tbody");
+    S.rows.forEach(function(a, ri){
+      var tr = document.createElement("tr");
+      tr.dataset.row = ri;
+      S.atoms.forEach(function(n){
+        var td = document.createElement("td");
+        td.className = "refcell";
+        td.textContent = a[n] ? TRUE_CHAR : FALSE_CHAR;
+        tr.appendChild(td);
+      });
+      var g = document.createElement("td");
+      g.className = "gap";
+      tr.appendChild(g);
+
+      S.toks.forEach(function(tk, ci){
+        var td = document.createElement("td");
+        if("()[]{},⊨".indexOf(tk.t) >= 0){
+          td.className = "blank";
+          tr.appendChild(td);
+          return;
+        }
+        td.className = "cell";
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "cellbtn" + (isRoot(tk.pos) ? " main" : "");
+        b.dataset.row = ri;
+        b.dataset.pos = tk.pos;
+        b.dataset.col = ci;
+        b.setAttribute("aria-label", "Zeile " + (ri+1) + ", Spalte " + tk.text);
+        b.addEventListener("click", function(){ cycle(b); });
+        b.addEventListener("keydown", onKey);
+        td.appendChild(b);
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+
+    scroll.innerHTML = "";
+    scroll.appendChild(tbl);
+    resEl.className = "result";
+  }
+
+  /* ---------- Beurteilungsfrage ---------- */
+  var VERDICTS = {
+    single:   {label:"Die Formel ist",
+               opts:[["taut","eine Tautologie"],["contra","unerfüllbar"],["cont","kontingent"]],
+               note:"Kontingent heißt: in mindestens einer Zeile wahr und in mindestens einer "
+                  + "falsch – die Formel ist also weder eine Tautologie noch unerfüllbar."},
+    argument: {label:"Die Folgerung ist", opts:[["valid","gültig"],["invalid","ungültig"]]},
+    multi:    {label:"Die Formeln sind", opts:[["sat","gemeinsam erfüllbar"],["unsat","nicht gemeinsam erfüllbar"]]}
+  };
+
+  function renderVerdict(){
+    var cfg = VERDICTS[S.mode];
+    vEl.innerHTML = "";
+    var sp = document.createElement("span");
+    sp.className = "vlabel";
+    sp.textContent = cfg.label;
+    vEl.appendChild(sp);
+    cfg.opts.forEach(function(o){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.dataset.v = o[0];
+      b.textContent = o[1];
+      b.setAttribute("aria-pressed","false");
+      vEl.appendChild(b);
+    });
+    if(cfg.note){
+      var nt = document.createElement("p");
+      nt.className = "vnote";
+      nt.textContent = cfg.note;
+      vEl.appendChild(nt);
+    }
+  }
+
+  vEl.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-v]");
+    if(!b || !S) return;
+    S.verdict = b.dataset.v;
+    vEl.querySelectorAll("button[data-v]").forEach(function(x){
+      x.setAttribute("aria-pressed", x === b ? "true" : "false");
+    });
+  });
+
+  /* ---------- Zellen ---------- */
+  function setCell(b, v){
+    var ri = +b.dataset.row, pos = +b.dataset.pos;
+    if(v === null) delete S.vals[ri][pos];
+    else S.vals[ri][pos] = v;
+    b.textContent = v === null ? "" : (v ? TRUE_CHAR : FALSE_CHAR);
+    b.classList.remove("ok","bad");
+  }
+  function cycle(b){
+    var cur = S.vals[+b.dataset.row][+b.dataset.pos];
+    setCell(b, cur === undefined ? true : (cur === true ? false : null));
+  }
+  function onKey(e){
+    var b = e.currentTarget, k = e.key.toLowerCase();
+    if(k === "w" || k === "t" || k === "1"){ setCell(b, true); e.preventDefault(); move(b,1,0); }
+    else if(k === "f" || k === "0"){ setCell(b, false); e.preventDefault(); move(b,1,0); }
+    else if(k === "delete" || k === "backspace"){ setCell(b, null); e.preventDefault(); }
+    else if(k === "arrowdown"){ e.preventDefault(); move(b,1,0); }
+    else if(k === "arrowup"){ e.preventDefault(); move(b,-1,0); }
+    else if(k === "arrowright"){ e.preventDefault(); move(b,0,1); }
+    else if(k === "arrowleft"){ e.preventDefault(); move(b,0,-1); }
+  }
+  function move(b, dr, dc){
+    var r = +b.dataset.row, c = +b.dataset.col;
+    if(dr){
+      var t = scroll.querySelector('.cellbtn[data-row="' + (r+dr) + '"][data-col="' + c + '"]');
+      if(t) t.focus();
+      return;
+    }
+    for(var step = 1; step <= S.toks.length; step++){
+      var nc = c + dc * step;
+      if(nc < 0 || nc >= S.toks.length) return;
+      var t2 = scroll.querySelector('.cellbtn[data-row="' + r + '"][data-col="' + nc + '"]');
+      if(t2){ t2.focus(); return; }
+    }
+  }
+
+  /* ---------- Auswertung ---------- */
+  function premiseRoots(){
+    return S.roots.slice(0, S.turnstileAt);
+  }
+  function conclusionRoot(){
+    return S.roots[S.roots.length - 1];
+  }
+
+  function witnesses(){
+    /* Zeilen, die die Beurteilung belegen */
+    var out = [];
+    S.rows.forEach(function(a, ri){
+      if(S.mode === "argument"){
+        var allP = premiseRoots().every(function(r){ return ev(r, a); });
+        if(allP && !ev(conclusionRoot(), a)) out.push(ri + 1);
+      } else if(S.mode === "multi"){
+        if(S.roots.every(function(r){ return ev(r, a); })) out.push(ri + 1);
+      }
+    });
+    return out;
+  }
+
+  function classify(){
+    if(S.mode === "argument") return witnesses().length ? "invalid" : "valid";
+    if(S.mode === "multi")    return witnesses().length ? "sat" : "unsat";
+    var t = 0;
+    S.rows.forEach(function(a){ if(ev(S.roots[0], a)) t++; });
+    if(t === S.rows.length) return "taut";
+    if(t === 0) return "contra";
+    return "cont";
+  }
+
+  $("check").addEventListener("click", function(){
+    if(!S) return;
+    var filled = 0, wrong = 0, total = 0;
+    scroll.querySelectorAll(".cellbtn").forEach(function(b){
+      var node = S.map[+b.dataset.pos];
+      if(!node) return;
+      total++;
+      var want = ev(node, S.rows[+b.dataset.row]);
+      var got = S.vals[+b.dataset.row][+b.dataset.pos];
+      b.classList.remove("ok","bad");
+      if(got === undefined) return;
+      filled++;
+      if(got === want) b.classList.add("ok"); else { b.classList.add("bad"); wrong++; }
+    });
+
+    scroll.querySelectorAll("tr.witness").forEach(function(tr){ tr.classList.remove("witness"); });
+
+    var msgs = [];
+    if(filled < total) msgs.push("Es fehlen noch " + (total - filled) + " von " + total + " Einträgen.");
+    if(wrong > 0) msgs.push(wrong + (wrong === 1 ? " Eintrag stimmt" : " Einträge stimmen") + " nicht (rot markiert).");
+    if(!S.verdict) msgs.push("Bitte unten noch die Frage beantworten.");
+    else if(S.verdict !== classify()) msgs.push("Die Antwort auf die Frage unten stimmt nicht.");
+
+    if(!msgs.length){
+      var w = witnesses();
+      var tail = "";
+      if(S.mode === "argument"){
+        tail = w.length
+          ? " Zeile " + w.join(", ") + " ist ein Gegenbeispiel: alle Prämissen wahr, Konklusion falsch."
+          : " In keiner Zeile sind alle Prämissen wahr und die Konklusion falsch.";
+      } else if(S.mode === "multi"){
+        tail = w.length
+          ? " Zeile " + w.join(", ") + " macht alle Formeln zugleich wahr."
+          : " Keine Zeile macht alle Formeln zugleich wahr.";
+      } else {
+        tail = " Die Spalte unter dem Hauptjunktor entscheidet.";
+      }
+      w.forEach(function(n){
+        var tr = scroll.querySelector('tr[data-row="' + (n-1) + '"]');
+        if(tr) tr.classList.add("witness");
+      });
+      resEl.className = "result show good";
+      resEl.textContent = "Alles richtig." + tail;
+    } else {
+      resEl.className = "result show partial";
+      resEl.textContent = msgs.join(" ");
+    }
+  });
+
+  $("clear").addEventListener("click", function(){
+    if(!S) return;
+    S.vals = S.rows.map(function(){ return {}; });
+    S.verdict = null;
+    scroll.querySelectorAll(".cellbtn").forEach(function(b){
+      b.textContent = "";
+      b.classList.remove("ok","bad");
+    });
+    scroll.querySelectorAll("tr.witness").forEach(function(tr){ tr.classList.remove("witness"); });
+    vEl.querySelectorAll("button[data-v]").forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+    resEl.className = "result";
+  });
+
+  $("solve").addEventListener("click", function(){
+    if(!S) return;
+    scroll.querySelectorAll(".cellbtn").forEach(function(b){
+      var node = S.map[+b.dataset.pos];
+      if(!node) return;
+      var v = ev(node, S.rows[+b.dataset.row]);
+      S.vals[+b.dataset.row][+b.dataset.pos] = v;
+      b.textContent = v ? TRUE_CHAR : FALSE_CHAR;
+      b.classList.remove("ok","bad");
+    });
+    var v = classify();
+    S.verdict = v;
+    vEl.querySelectorAll("button[data-v]").forEach(function(x){
+      x.setAttribute("aria-pressed", x.dataset.v === v ? "true" : "false");
+    });
+    witnesses().forEach(function(n){
+      var tr = scroll.querySelector('tr[data-row="' + (n-1) + '"]');
+      if(tr) tr.classList.add("witness");
+    });
+    resEl.className = "result show partial";
+    resEl.textContent = "Lösung eingetragen. Zum Üben „Leeren“ und noch einmal versuchen.";
+  });
+
+  $("build").addEventListener("click", build);
+  fEl.addEventListener("keydown", function(e){ if(e.key === "Enter") build(); });
+
+  fEl.value = "(Würfel(a) ∧ a=b) ⊨ Würfel(b)";
+  build();
+})();
+</script>
+</body>
+</html>
